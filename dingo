@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+export DINGO_ROOT=${DOKKU_ROOT:="/home/dingo"}
+export DINGO_PLUGINS=${DINGO_PLUGINS:="/var/lib/dingo/plugins"}

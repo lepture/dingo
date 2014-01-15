@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
+
+# supervisor
+pip install -U supervisor
+
+# TODO: supervisor configuration

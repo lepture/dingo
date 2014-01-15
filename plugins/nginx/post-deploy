@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+
+import os
+
+DINGO_ROOT = os.environ['DINGO_ROOT']
+
+
+def is_ssl(name):
+    path = os.path.join(DINGO_ROOT, 'ssl', name)
+    if not os.path.isfile(os.path.join(path, 'server.crt')):
+        return False
+    if not os.path.isfile(os.path.join(path, 'server.key')):
+        return False
+    return True
+
+
+def public(name):
+    path = os.path.join(DINGO_ROOT, 'apps', name)
+    if os.path.isdir(os.path.join(path, 'public')):
+        return 'public'
+    if os.path.isdir(os.path.join(path, name, 'public')):
+        return '%s/public' % name
+    return None
+
+
+TEMPLATE_UPSTREAM = 'upstream %(name)s { server 127.0.0.1:%(port)d; }'
+
+TEMPLATE_SERVER = '''
+server {
+  listen [::]:80;
+  listen 80;
+  server_name %(hostname)s;
+
+  access_log %(dingo_root)s/logs/%(name)s.access.log;
+  error_log %(dingo_root)s/logs/%(name)s.error.log;
+'''
+
+TEMPLATE_SSL = '''
+  listen [::]:443;
+  listen 443;
+
+  ssl on;
+  ssl_certification %(dingo_root)s/ssl/%(name)s/server.crt;
+  ssl_certification_key %(dingo_root)s/ssl/%(name)s/server.key;
+  ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-RC4-SHA:ECDHE-RSA-AES128-SHA:AES128-GCM-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH:!CAMELLIA;
+  ssl_prefer_server_ciphers on;
+  ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
+'''
+
+TEMPLATE_PUBLIC = '''
+root %(public_dir);
+location ~* ^/[^\/]+\.(gif|jpg|jpeg|png|txt|ico)$ {
+  expires 10d;
+}
+location ~* ^/[^\/]+\.(css|js)$ {
+  if ($query_string) {
+    expires 30d;
+  }
+}
+'''
+
+TEMPLATE_PROXY = '''
+  location / {
+    proxy_pass http://%(name)s
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Port $server_port;
+    proxy_set_header X-Request-Start $msec;
+  }
+'''
+
+
+def dynamic_config(name, port, hostname=None):
+    if not hostname:
+        hostname = '%s.%s' % (name, os.environ['HOSTNAME'])
+
+    template = TEMPLATE_UPSTREAM + TEMPLATE_HEADER
+    if is_ssl(name):
+        template += TEMPLATE_SSL
+
+    public_dir = public(name)
+    if public_dir:
+        template += TEMPLATE_PUBLIC
+
+    template += TEMPLATE_PROXY
+    template += '}'
+    return template % dict(
+        name=name,
+        hostname=hostname,
+        port=port,
+        dingo_root=DINGO_ROOT,
+        public_dir=public_dir,
+    )
+
+
+def static_config(name, hostname=None):
+    if not hostname:
+        hostname = '%s.%s' % (name, os.environ['HOSTNAME'])
+
+    template = TEMPLATE_HEADER
+    public_dir = os.path.join(DINGO_ROOT, 'apps', name)
+    if is_ssl(name):
+        template += TEMPLATE_SSL
+
+    template += TEMPLATE_PUBLIC
+    template += '}'
+    return template % dict(
+        name=name,
+        hostname=hostname,
+        port=port,
+        dingo_root=DINGO_ROOT,
+        public_dir=public_dir,
+    )

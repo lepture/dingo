@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
+
+if ! grep -q git-without-password "/etc/sudoers"; then
+    touch /etc/sudoers.tmp
+    cp /etc/sudoers /tmp/sudoers.new
+    echo "git ALL=(dingo) NOPASSWD: /home/dingo/dingo # git-without-password" >> /tmp/sudoers.new
+    EDITOR="cp /tmp/sudoers.new" visudo
+    rm /tmp/sudoers.new
+fi

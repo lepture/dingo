@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
+# http://askubuntu.com/questions/21547/what-are-the-packages-libraries-i-should-install-before-compiling-python-from-so
+sudo apt-get install -y build-essential libz-dev libreadline-dev
+sudo apt-get install -y libncursesw5-dev libssl-dev libgdbm-dev libbz2-dev libbz2-dev libc6-dev libsqlite3-dev liblzma-dev
+
+# http://stackoverflow.com/questions/6169522/no-module-named-zlib
+sudo apt-get install -y zlib1g-dev
+
 curl -kL https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py | python
 rm setuptools-*.tar.gz
 easy_install -U pip

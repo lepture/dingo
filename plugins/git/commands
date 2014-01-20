@@ -62,7 +62,7 @@ EOF
         while read oldrev newrev refname
         do
             if [[ $refname = "refs/heads/master" ]]; then
-                git_archive_all $REPO $newrev | sudo -u dingo /usr/local/bin/dingo receive $APP
+                git_archive_all $REPO $newrev | sudo -H -u dingo /usr/local/bin/dingo receive $APP
             fi
         done
         ;;

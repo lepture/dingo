@@ -4,11 +4,12 @@ set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
 APP=$1
 BUILD_DIR=$DINGO_ROOT/build/$APP
-VENV_DIR=${DINGO_ROOT}/.python/${APP}
+VENV_DIR=${DINGO_ROOT}/.runtime/${APP}
 
 if [ -d $VENV_DIR ]; then
     source $VENV_DIR/bin/activate
     if [ -f $BUILD_DIR/requirements.txt ]; then
+        echo "Install requirements"
         pip install -r "$BUILD_DIR/requirements.txt"
     fi
 fi

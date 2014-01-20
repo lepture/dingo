@@ -1,5 +1,4 @@
 SSHCOMMAND_URL ?= https://raw.github.com/progrium/sshcommand/master/sshcommand
-GITRECEIVE_URL ?= https://raw.github.com/progrium/gitreceive/master/gitreceive
 GITUSER ?= git
 
 DINGO_ROOT ?= /home/dingo
@@ -20,8 +19,3 @@ sshcommand:
 	wget -qO /usr/local/bin/sshcommand ${SSHCOMMAND_URL}
 	chmod +x /usr/local/bin/sshcommand
 	sshcommand create dingo /usr/local/bin/dingo
-
-gitreceive:
-	wget -qO /usr/local/bin/gitreceive ${GITRECEIVE_URL}
-	chmod +x /usr/local/bin/gitreceive
-	gitreceive init

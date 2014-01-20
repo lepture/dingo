@@ -2,6 +2,11 @@
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
 GITUSER=${GITUSER:-git}
+GITHOME="/home/${GITUSER}"
+
+useradd -d $GITHOME $GITUSER || true
+mkdir -p $GITHOME/.ssh
+touch $GITHOME/.ssh/authorized_keys
 
 if ! grep -q git-without-password "/etc/sudoers"; then
     touch /etc/sudoers.tmp
@@ -11,8 +16,4 @@ if ! grep -q git-without-password "/etc/sudoers"; then
     rm /tmp/sudoers.new
 fi
 
-cat > "/home/$GITUSER/receiver" <<EOF
-#!/usr/bin/env bash
-APP="\$(echo \$1 | sed -r "s/\.git$//")"
-cat | sudo -u dingo /usr/local/bin/dingo receive \$APP \$2 \$3 \$4
-EOF
+chown -R $GITUSER $GITHOME

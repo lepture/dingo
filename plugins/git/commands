@@ -1,7 +1,69 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
+GITUSER=${GITUSER:-git}
+GITHOME="/home/${GITUSER}"
+
+git_archive_all() {
+    REPO=$1; REV=$2
+    TMP_WORK_DIR=$(mktemp -d)
+    chmod 755 $TMP_WORK_DIR
+    unset GIT_DIR GIT_WORK_TREE
+    git clone $GITHOME/$REPO $TMP_WORK_DIR &> /dev/null
+    pushd $TMP_WORK_DIR &> /dev/null
+    git config advice.detachedHead false
+    git checkout $REV &> /dev/null
+    git submodule update --init --recursive &> /dev/null
+    find -name .git -prune -exec rm -rf {} \; &> /dev/null
+    tar c .
+    popd > /dev/null
+    rm -rf $TMP_WORK_DIR > /dev/null
+}
+
 case "$1" in
-    *)
+    add-key)
+        KEY=$(cat)
+        FINGERPRINT=$(ssh-keygen -lf /dev/stdin <<< $(echo $KEY) | awk '{print $2}')
+        AUTHORIZED_KEYS=$GITHOME/.ssh/authorized_keys
+        KEY_PREFIX="command=\"dingo git:receive $2 $FINGERPRINT\",no-agent-forwarding,no-pty,no-user-rc,no-X11-forwarding,no-port-forwarding"
+
+        if ! grep -q "$FINGERPRINT" $AUTHORIZED_KEYS; then
+            echo "$KEY_PREFIX $KEY" >> $AUTHORIZED_KEYS
+            echo $FINGERPRINT
+        else
+            echo "Already Added"
+        fi
+        ;;
+
+    receive)
+        export USER=$2
+        export FINGERPRINT=$3
+        export REPO="$(echo $SSH_ORIGINAL_COMMAND | awk '{print $2}' | perl -pe 's/(?<!\\)'\''//g' | sed 's/\\'\''/'\''/g')"
+        REPO_PATH="$GITHOME/$REPO"
+
+        if [ ! -d $REPO_PATH ]; then
+            git init --bare $REPO_PATH > /dev/null
+            PRERECEIVE_HOOK="$REPO_PATH/hooks/pre-receive"
+            cat > $PRERECEIVE_HOOK <<EOF
+#!/usr/bin/env bash
+set -e; set -o pipefail;
+cat | dingo git:hook $REPO
+EOF
+            chmod +x $PRERECEIVE_HOOK
+        fi
+
+        git-shell -c "$SSH_ORIGINAL_COMMAND"
+        ;;
+
+    hook)
+        REPO=$2
+        APP=$(echo "$REPO" | sed -r s/\.git$//)
+
+        while read oldrev newrev refname
+        do
+            if [[ $refname = "refs/heads/master" ]]; then
+                git_archive_all $REPO $newrev | sudo -u dingo /usr/local/bin/dingo receive $APP
+            fi
+        done
         ;;
 esac

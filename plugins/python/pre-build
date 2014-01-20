@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
+
+APP=$1
+BUILD_DIR=$DINGO_ROOT/build/$APP
+
+# detect if this is Python project
+
+if [[ ! -f $BUILD_DIR/requirements.txt && ! -f $BUILD_DIR/setup.py ]]; then
+    exit 1
+fi
+
+python --version &> ${BUILD_DIR}/runtime.txt
+
+# create python virtualenv
+PYTHON=$(which python)
+VENV_DIR=${DINGO_ROOT}/.python/${APP}
+virtualenv -p ${PYTHON} ${VENV_DIR}

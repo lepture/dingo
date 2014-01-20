@@ -4,10 +4,22 @@ set -eo pipefail
 export DINGO_ROOT=${DOKKU_ROOT:="/home/dingo"}
 export DINGO_LIB=${DINGO_LIB:="/var/lib/dingo"}
 
+
 function pluginhook {
     for script in $(ls -d ${DINGO_LIB}/plugins/*/$1); do
         $script
     done
+}
+
+
+function plugincommand {
+    # plugin command like `foo:bar`
+    cmd=(${1//:/ })
+    subcmd=$(echo "$@" | sed -r "s/^${cmd[0]}://")
+    script=${DINGO_LIB}/plugins/${cmd[0]}/commands
+    if [ -f $script ]; then
+        $script ${subcmd}
+    fi
 }
 
 
@@ -23,9 +35,10 @@ case "$1" in
         pluginhook install
         ;;
 
+    *:*)
+        plugincommand "$@"
+        ;;
+
     *)
-        for script in $(ls -d ${DINGO_LIB}/plugins/*/commands); do
-            $script "$@"
-        done
         ;;
 esac

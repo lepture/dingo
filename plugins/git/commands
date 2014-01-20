@@ -9,12 +9,12 @@ git_archive_all() {
     TMP_WORK_DIR=$(mktemp -d)
     chmod 755 $TMP_WORK_DIR
     unset GIT_DIR GIT_WORK_TREE
-    git clone $GITHOME/$REPO $TMP_WORK_DIR &> /dev/null
-    pushd $TMP_WORK_DIR &> /dev/null
+    git clone $GITHOME/$REPO $TMP_WORK_DIR > /dev/null
+    pushd $TMP_WORK_DIR > /dev/null
     git config advice.detachedHead false
-    git checkout $REV &> /dev/null
-    git submodule update --init --recursive &> /dev/null
-    find -name .git -prune -exec rm -rf {} \; &> /dev/null
+    git checkout $REV > /dev/null
+    git submodule update --init --recursive > /dev/null
+    find -name .git -prune -exec rm -rf {} \; > /dev/null
     tar c .
     popd > /dev/null
     rm -rf $TMP_WORK_DIR > /dev/null
@@ -43,13 +43,13 @@ case "$1" in
 
         if [ ! -d $REPO_PATH ]; then
             git init --bare $REPO_PATH > /dev/null
-            PRERECEIVE_HOOK="$REPO_PATH/hooks/pre-receive"
-            cat > $PRERECEIVE_HOOK <<EOF
+            RECEIVE_HOOK="$REPO_PATH/hooks/post-receive"
+            cat > $RECEIVE_HOOK <<EOF
 #!/usr/bin/env bash
 set -e; set -o pipefail;
 cat | dingo git:hook $REPO
 EOF
-            chmod +x $PRERECEIVE_HOOK
+            chmod +x $RECEIVE_HOOK
         fi
 
         git-shell -c "$SSH_ORIGINAL_COMMAND"

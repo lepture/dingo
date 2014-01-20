@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# dingo config:set GITHUB=lepture
+
+CMD=$1
+APP=$2
+VAR=$3
+
+CONFIG_PATH="${DINGO_ROOT}/config/$APP"
+
+get_config() {
+    if [ ! $1 ]; then
+        if [ -f $CONFIG_PATH ]; then
+            cat $CONFIG_PATH
+        else
+            echo ""
+        fi
+    else
+        grep "$1" "$CONFIG_PATH"
+    fi
+}
+
+set_config() {
+    # GITHUB=lepture
+    cmd=(${1//=/ })
+
+    if [[ ! ${cmd[0]} =~ ^[A-Z]+$ ]]; then
+        echo "Environment variable must be uppercase."
+        exit 1
+    fi
+
+    if [ ! ${cmd[1]} ]; then
+        echo "No value."
+        exit 1
+    fi
+
+    if [ ! -f $CONFIG_PATH ]; then
+        mkdir -p $DINGO_ROOT/config
+        echo "$1" > $CONFIG_PATH
+    elif ! grep -q "${cmd[0]}=" "$CONFIG_PATH"; then
+        echo "$1" >> $CONFIG_PATH
+    else
+        sed -i s/${cmd[0]}=.*/$1/ $CONFIG_PATH
+    fi
+}
+
+unset_config() {
+    if [[ ! $1 =~ ^[A-Z]+$ ]]; then
+        echo "Environment variable must be uppercase."
+        exit 1
+    fi
+
+    if [ ! -f $CONFIG_PATH ]; then
+        exit
+    fi
+
+    sed -i /$1=.*/d $CONFIG_PATH
+}
+
+case "$CMD" in
+    get)
+        get_config $VAR
+        ;;
+    set)
+        set_config $VAR
+        ;;
+    unset)
+        unset_config $VAR
+        ;;
+esac

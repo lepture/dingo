@@ -1,12 +1,11 @@
 SSHCOMMAND_URL ?= https://raw.github.com/progrium/sshcommand/master/sshcommand
-GITUSER ?= git
 
 DINGO_ROOT ?= /home/dingo
 DINGO_LIB ?= /var/lib/dingo
 
 CWD = $(shell pwd)
 
-install: sshcommand copyfiles gitreceive
+install: sshcommand copyfiles
 
 copyfiles:
 	rm -f /usr/local/bin/dingo

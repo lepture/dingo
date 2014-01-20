@@ -6,8 +6,12 @@ export DINGO_LIB=${DINGO_LIB:="/var/lib/dingo"}
 
 
 pluginhook() {
+    APP=$2
+    if [[ ! $APP ]]; then
+        exit 1
+    fi
     for script in $(ls -d ${DINGO_LIB}/plugins/*/$1 2>/dev/null); do
-        $script
+        $script $APP
     done
 }
 
@@ -40,6 +44,7 @@ case "$1" in
 
     build)
         pluginhook pre-build $2
+        pluginhook build $2
         pluginhook post-build $2
         ;;
 
@@ -54,7 +59,9 @@ case "$1" in
         ;;
 
     plugins-install)
-        pluginhook install
+        for script in $(ls -d ${DINGO_LIB}/plugins/*/install); do
+            $script
+        done
         ;;
 
     *:*)

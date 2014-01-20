@@ -7,7 +7,7 @@ DINGO_LIB ?= /var/lib/dingo
 
 CWD = $(shell pwd)
 
-install: sshcommand copyfiles
+install: sshcommand copyfiles gitreceive
 
 copyfiles:
 	rm -f /usr/local/bin/dingo

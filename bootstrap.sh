@@ -15,4 +15,6 @@ apt-get install -y python-software-properties
 #TODO clone repo
 
 make install
+
+# install plugins
 dingo plugins-install

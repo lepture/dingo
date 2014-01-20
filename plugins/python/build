@@ -10,6 +10,9 @@ if [ -d $VENV_DIR ]; then
     source $VENV_DIR/bin/activate
     if [ -f $BUILD_DIR/requirements.txt ]; then
         echo "Install requirements"
-        pip install -r "$BUILD_DIR/requirements.txt"
+        pip install -q -r "$BUILD_DIR/requirements.txt"
     fi
 fi
+
+# record PATH
+dingo config:set $APP PATH=$PATH

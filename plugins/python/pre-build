@@ -11,9 +11,44 @@ if [[ ! -f $BUILD_DIR/requirements.txt && ! -f $BUILD_DIR/setup.py ]]; then
     exit 1
 fi
 
-python --version &> ${BUILD_DIR}/runtime.txt
+# install pythonz
+export PYTHONZ_ROOT=${DINGO_ROOT}/.pythonz
+if [[ ! -d ${PYTHONZ_ROOT} ]]; then
+    curl -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash > /dev/null
+fi
+source ${PYTHONZ_ROOT}/etc/bashrc
 
-# create python virtualenv
-PYTHON=$(which python)
-VENV_DIR=${DINGO_ROOT}/.python/${APP}
-virtualenv -p ${PYTHON} ${VENV_DIR}
+# find runtime
+USE_PYTHON='Python 2.7.6'
+if [[ -f $BUILD_DIR/runtime.txt ]]; then
+    USE_PYTHON=$(cat $BUILD_DIR/runtime.txt)
+else
+    echo "runtime.txt is not provided."
+fi
+
+USE_PYTHON=$(echo "$USE_PYTHON" | sed -r s/\\s+/-/)
+USE_PYTHON=$(echo $USE_PYTHON | perl -e 'print lc <>;')
+
+echo "Setting up $USE_PYTHON"
+echo $USE_PYTHON > ${BUILD_DIR}/runtime.txt
+
+# transform USE_PYTHON to pythonz format
+pythons=(${USE_PYTHON//-/ })
+if [[ ${pythons[0]} = "python" ]]; then
+    python_type="CPython"
+elif [[ ${pythons[0]} = "pypy" ]]; then
+    python_type="PyPy"
+fi
+python_version=${pythons[1]}
+
+# install python
+PYTHON_BIN=$PYTHONZ_ROOT/pythons/${python_type}-${python_version}/bin/python
+if [ ! -f $PYTHON_BIN ]; then
+    pythonz install -t ${python_type} ${python_version}
+fi
+
+# create virtualenv
+VENV_DIR=${DINGO_ROOT}/.runtime/${APP}
+if [ ! -d $VENV_DIR ]; then
+    virtualenv -p ${PYTHON_BIN} ${VENV_DIR}
+fi

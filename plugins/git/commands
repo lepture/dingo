@@ -29,10 +29,13 @@ case "$1" in
 
         if ! grep -q "$FINGERPRINT" $AUTHORIZED_KEYS; then
             echo "$KEY_PREFIX $KEY" >> $AUTHORIZED_KEYS
-            echo $FINGERPRINT
-        else
-            echo "Already Added"
         fi
+
+        # add to dingo authorized_keys
+        if ! grep -q "$FINGERPRINT" "$DINGO_ROOT/.ssh/authorized_keys"; then
+            sshcommand acl-add dingo $2 <<< "${KEY}"
+        fi
+        echo $FINGERPRINT
         ;;
 
     receive)

@@ -6,7 +6,6 @@ APP=$1
 BUILD_DIR=$DINGO_ROOT/build/$APP
 
 # detect if this is Python project
-
 if [[ ! -f $BUILD_DIR/requirements.txt && ! -f $BUILD_DIR/setup.py ]]; then
     exit 1
 fi

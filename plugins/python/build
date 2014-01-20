@@ -6,6 +6,11 @@ APP=$1
 BUILD_DIR=$DINGO_ROOT/build/$APP
 VENV_DIR=${DINGO_ROOT}/.runtime/${APP}
 
+# detect if this is Python project
+if [[ ! -f $BUILD_DIR/requirements.txt && ! -f $BUILD_DIR/setup.py ]]; then
+    exit 1
+fi
+
 if [ -d $VENV_DIR ]; then
     source $VENV_DIR/bin/activate
     if [ -f $BUILD_DIR/requirements.txt ]; then

@@ -13,5 +13,6 @@ fi
 
 cat > "/home/$GITUSER/receiver" <<EOF
 #!/usr/bin/env bash
-sudo -u dingo /usr/local/bin/dingo git:pull \$1
+APP="\$(echo \$1 | sed -r "s/\.git$//")"
+cat | sudo -u dingo /usr/local/bin/dingo receive \$APP \$2 \$3 \$4
 EOF

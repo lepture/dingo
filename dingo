@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-set -eo pipefail
+set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
-export DINGO_ROOT=${DOKKU_ROOT:="/home/dingo"}
+export DINGO_ROOT=${DINGO_ROOT:="/home/dingo"}
 export DINGO_LIB=${DINGO_LIB:="/var/lib/dingo"}
 
 
 function pluginhook {
-    for script in $(ls -d ${DINGO_LIB}/plugins/*/$1); do
+    for script in $(ls -d ${DINGO_LIB}/plugins/*/$1 2>/dev/null); do
         $script
     done
 }
@@ -30,6 +30,35 @@ fi
 
 
 case "$1" in
+    receive)
+        APP=$2
+        echo "----> Receive:   $APP"
+        BUILD_ROOT=${DINGO_ROOT}/build/$APP
+        rm -fr ${BUILD_ROOT}
+        mkdir -p ${BUILD_ROOT}
+        cat | tar -xC ${BUILD_ROOT}
+        echo "----> Building:  $APP"
+        dingo build $APP
+        echo "----> Releasing: $APP"
+        dingo release $APP
+        echo "----> Deploying: $APP"
+        dingo deploy $APP
+        ;;
+
+    build)
+        pluginhook pre-build $2
+        pluginhook post-build $2
+        ;;
+
+    release)
+        pluginhook pre-release $2
+        pluginhook post-release $2
+        ;;
+
+    deploy)
+        pluginhook pre-deploy $2
+        pluginhook post-deploy $2
+        ;;
 
     plugins-install)
         pluginhook install

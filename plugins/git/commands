@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
 case "$1" in
-    pull)
-        echo "$2"
-        ;;
     *)
         ;;
 esac

@@ -1,16 +1,27 @@
 SSHCOMMAND_URL ?= https://raw.github.com/progrium/sshcommand/master/sshcommand
-DINGO_ROOT ?= /home/dingo
+GITRECEIVE_URL ?= https://raw.github.com/progrium/gitreceive/master/gitreceive
+GITUSER ?= git
 
-install: copyfiles
+DINGO_ROOT ?= /home/dingo
+DINGO_LIB ?= /var/lib/dingo
+
+CWD = $(shell pwd)
+
+install: sshcommand copyfiles
 
 copyfiles:
 	rm -f /usr/local/bin/dingo
-	ln -s dingo /usr/local/bin/dingo
-	mkdir -p /var/lib/dingo
-	rm -fr /var/lib/dingo/plugins
-	ln -s plugins /var/lib/dingo/plugins
+	ln -s ${CWD}/dingo /usr/local/bin/dingo
+	mkdir -p ${DINGO_LIB}
+	rm -fr ${DINGO_LIB}/plugins
+	ln -s ${CWD}/plugins ${DINGO_LIB}/plugins
 
 sshcommand:
 	wget -qO /usr/local/bin/sshcommand ${SSHCOMMAND_URL}
 	chmod +x /usr/local/bin/sshcommand
 	sshcommand create dingo /usr/local/bin/dingo
+
+gitreceive:
+	wget -qO /usr/local/bin/gitreceive ${GITRECEIVE_URL}
+	chmod +x /usr/local/bin/gitreceive
+	gitreceive init

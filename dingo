@@ -2,4 +2,30 @@
 set -eo pipefail
 
 export DINGO_ROOT=${DOKKU_ROOT:="/home/dingo"}
-export DINGO_PLUGINS=${DINGO_PLUGINS:="/var/lib/dingo/plugins"}
+export DINGO_LIB=${DINGO_LIB:="/var/lib/dingo"}
+
+function pluginhook {
+    for script in $(ls -d ${DINGO_LIB}/plugins/*/$1); do
+        $script
+    done
+}
+
+
+if [[ $(id -un) != "dingo" && $1 != "plugins-install" ]]; then
+    sudo -u dingo -H $0 "$@"
+    exit
+fi
+
+
+case "$1" in
+
+    plugins-install)
+        pluginhook install
+        ;;
+
+    *)
+        for script in $(ls -d ${DINGO_LIB}/plugins/*/commands); do
+            $script "$@"
+        done
+        ;;
+esac

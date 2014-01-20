@@ -5,6 +5,14 @@ add-apt-repository -y ppa:nginx/stable
 apt-get update
 apt-get install -y nginx
 
+if ! grep -q nginx-without-password "/etc/sudoers"; then
+    touch /etc/sudoers.tmp
+    cp /etc/sudoers /tmp/sudoers.new
+    echo "%dingo ALL=(ALL) NOPASSWD: /etc/init.d/nginx reload# nginx-without-password" >> /tmp/sudoers.new
+    EDITOR="cp /tmp/sudoers.new" visudo
+    rm /tmp/sudoers.new
+fi
+
 echo "include $DINGO_ROOT/nginx/*.conf;" > /etc/nginx/conf.d/dingo.conf
 
 sed -i 's/# server_names_hash_bucket_size/server_names_hash_bucket_size/' /etc/nginx/nginx.conf

@@ -2,14 +2,8 @@
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
 curl -kL https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py | python
+rm setuptools-*.tar.gz
 easy_install -U pip
 
 # virtualenv
 pip install -U virtualenv
-
-# pythonz
-if [ ! -d $HOME/.pythonz ]; then
-    curl -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash
-    echo "[[ -s \$HOME/.pythonz/etc/bashrc ]] && source \$HOME/.pythonz/etc/bashrc" >> $HOME/.bashrc
-    source $HOME/.bashrc
-fi

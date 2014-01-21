@@ -11,19 +11,16 @@ to waste resource for docker.
 
 ```
 /home/dingo
-    supervisord/
-        $APP.conf
-    nginx/
-        $APP.conf
-    ssl/
-        $APP/server.crt
-        $APP/server.key
-    apps/
-        $APP/
-    hooks/
-        $APP/
-    build/
-        $APP/
+    $APP/
+        env
+        supervisord.conf
+        nginx.conf
+        ssl/
+            server.crt
+            server.key
+        hooks/
+        build/
+        root/
 ```
 
 ### supervisord
@@ -47,8 +44,7 @@ Hook anything you want for your app:
 
 ```
 hooks/
-    $APP/
-        pre-deploy
+    pre-deploy
 ```
 
 ### build

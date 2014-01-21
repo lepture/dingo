@@ -6,7 +6,7 @@ CMD=$1
 APP=$2
 VAR=$3
 
-CONFIG_PATH="${DINGO_ROOT}/config/$APP"
+CONFIG_PATH="${DINGO_ROOT}/$APP/env"
 
 get_config() {
     if [ ! $1 ]; then

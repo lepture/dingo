@@ -3,19 +3,20 @@
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
 APP=$1
-BUILD_DIR=$DINGO_ROOT/build/$APP
-VENV_DIR=${DINGO_ROOT}/.runtime/${APP}
+BUILD_ROOT=${BUILD_ROOT:="$DINGO_ROOT/$APP/build"}
+PYTHON_RUNTIME=$(cat $BUILD_ROOT/runtime.txt)
+RUNTIME_ROOT=${BUILD_ROOT}/runtime/$PYTHON_RUNTIME
 
 # detect if this is Python project
-if [[ ! -f $BUILD_DIR/requirements.txt && ! -f $BUILD_DIR/setup.py ]]; then
+if [[ ! -f $BUILD_ROOT/requirements.txt && ! -f $BUILD_ROOT/setup.py ]]; then
     exit 1
 fi
 
-if [ -d $VENV_DIR ]; then
-    source $VENV_DIR/bin/activate
-    if [ -f $BUILD_DIR/requirements.txt ]; then
+if [ -d $RUNTIME_ROOT ]; then
+    source $RUNTIME_ROOT/bin/activate
+    if [ -f $BUILD_ROOT/requirements.txt ]; then
         echo "Install requirements"
-        pip install -q -r "$BUILD_DIR/requirements.txt"
+        pip install -q -r "$BUILD_ROOT/requirements.txt"
     fi
 fi
 

@@ -4,7 +4,6 @@ set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 export DINGO_ROOT=${DINGO_ROOT:="/home/dingo"}
 export DINGO_LIB=${DINGO_LIB:="/var/lib/dingo"}
 
-
 pluginhook() {
     APP=$2
     if [[ ! $APP ]]; then
@@ -28,9 +27,9 @@ plugincommand() {
 
 case "$1" in
     receive)
-        APP=$2
+        export APP=$2
         echo "----> Receive:   $APP"
-        BUILD_ROOT=${DINGO_ROOT}/build/$APP
+        export BUILD_ROOT=${DINGO_ROOT}/$APP/build
         rm -fr ${BUILD_ROOT}
         mkdir -p ${BUILD_ROOT}
         cat | tar -xC ${BUILD_ROOT}

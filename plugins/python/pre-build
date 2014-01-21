@@ -7,7 +7,7 @@ BUILD_ROOT=${BUILD_ROOT:="$DINGO_ROOT/$APP/build"}
 
 # detect if this is Python project
 if [[ ! -f $BUILD_ROOT/requirements.txt && ! -f $BUILD_ROOT/setup.py ]]; then
-    exit
+    exit 1
 fi
 
 # install pythonz

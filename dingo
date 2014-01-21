@@ -10,8 +10,9 @@ pluginhook() {
         exit 1
     fi
     for script in $(ls -d ${DINGO_LIB}/plugins/*/$1 2>/dev/null); do
-        $script $APP
+        $script $APP &
     done
+    wait
 }
 
 

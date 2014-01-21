@@ -4,4 +4,40 @@ set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 # supervisor
 pip install -U supervisor
 
-# TODO: supervisor configuration
+if [ -f "/etc/supervisord.conf" ]; then
+    exit
+fi
+
+PASSWORD=$(date | md5sum)
+PASSWORD=${PASSWORD// /}
+SUPERVISORD_ROOT=$DINGO_ROOT/.supervisord
+mkdir -p $SUPERVISORD_ROOT
+chown -R dingo $SUPERVISORD_ROOT
+
+cat > /etc/supervisord.conf <<EOF
+[unix_http_server]
+file = $SUPERVISORD_ROOT/supervisorctl.sock
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl = unix://$SUPERVISORD_ROOT/supervisorctl.sock
+username = dingo
+password = $PASSWORD
+
+[supervisord]
+logfile = $SUPERVISORD_ROOT/supervisord.log
+logfile_maxbytes = 50MB
+logfile_backups = 10
+loglevel = warn
+pidfile = $SUPERVISORD_ROOT/supervisord.pid
+nodaemon = false
+minfds = 1024
+minprocs = 200
+user = dingo
+
+[include]
+files = $DINGO_ROOT/*/supervisord.conf
+EOF
+supervisord -c /etc/supervisord.conf

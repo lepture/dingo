@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
+
+APP=$1
+BUILD_ROOT=${BUILD_ROOT:="$DINGO_ROOT/$APP/build"}
+
+# detect if this is Python project
+if [[ ! -f $BUILD_ROOT/package.json ]]; then
+    exit 1
+fi
+
+node_version=$(cat $BUILD_ROOT/.node_version)
+RUNTIME_ROOT=${DINGO_ROOT}/$APP/runtime/node-$node_version
+
+if [ -d $RUNTIME_ROOT ]; then
+    export PATH=$RUNTIME_ROOT/bin:$PATH
+    cd $BUILD_ROOT
+    echo "Install dependencies"
+    npm install -q
+fi
+
+# record PATH
+dingo config:set $APP PATH=$PATH

@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
+
+APP=$1
+BUILD_ROOT=${BUILD_ROOT:="$DINGO_ROOT/$APP/build"}
+
+# detect if this is Python project
+if [[ ! -f $BUILD_ROOT/package.json ]]; then
+    exit 1
+fi
+
+ENGINE_PARSE=$(dirname "${BASH_SOURCE[0]}")/engine
+semver_range=$(cat $BUILD_ROOT/package.json | ${ENGINE_PARSE})
+# Resolve node version using semver.io
+node_version=$(curl --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve)
+
+# Recommend using semver ranges in a safe manner
+if [ "$semver_range" == "null" ]; then
+    echo "Specify a node version in package.json"
+    semver_range=""
+elif [ "$semver_range" == "*" ]; then
+    echo "Avoid using semver ranges like '*' in engines.node"
+elif [ ${semver_range:0:1} == ">" ]; then
+    echo "Avoid using semver ranges starting with '>' in engines.node"
+fi
+
+# Output info about requested range and resolved node version
+if [ "$semver_range" == "" ]; then
+    echo "Defaulting to latest stable node: $node_version"
+else
+    echo "Requested node range:  $semver_range"
+    echo "Resolved node version: $node_version"
+fi
+echo $node_version > ${BUILD_ROOT}/.node_version
+
+node_tarball=${DINGO_ROOT}/.node_tarballs/node-$node_version.tar.gz
+
+if [ ! -f $node_tarball ]; then
+    echo "Downloading node-v$node_version"
+    echo "This may take a long time for the first time."
+    mkdir -p ${DINGO_ROOT}/.node_tarballs
+    node_url="http://nodejs.org/dist/v$node_version/node-v$node_version-linux-x64.tar.gz"
+    wget -qO $node_tarball $node_url
+fi
+
+RUNTIME_ROOT=$DINGO_ROOT/$APP/runtime/node-$node_version
+
+if [ ! -d $RUNTIME_ROOT ]; then
+    TMP_WORK_DIR=$(mktemp -d)
+    tar xzf $node_tarball -C $TMP_WORK_DIR
+    mkdir -p $DINGO_ROOT/$APP/runtime
+    mv $TMP_WORK_DIR/node-v$node_version-linux-x64 $RUNTIME_ROOT
+    rm -fr $TMP_WORK_DIR
+fi

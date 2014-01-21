@@ -7,7 +7,7 @@ BUILD_ROOT=${BUILD_ROOT:="$DINGO_ROOT/$APP/build"}
 
 # detect if this is Python project
 if [[ ! -f $BUILD_ROOT/requirements.txt && ! -f $BUILD_ROOT/setup.py ]]; then
-    exit 1
+    exit
 fi
 
 # install pythonz
@@ -49,7 +49,7 @@ if [ ! -f $PYTHON_BIN ]; then
 fi
 
 # create virtualenv
-RUNTIME_ROOT=${BUILD_ROOT}/runtime/$PYTHON_RUNTIME
+RUNTIME_ROOT=${DINGO_ROOT}/$APP/runtime/$PYTHON_RUNTIME
 if [ ! -d $RUNTIME_ROOT ]; then
     virtualenv -p ${PYTHON_BIN} ${RUNTIME_ROOT}
 fi

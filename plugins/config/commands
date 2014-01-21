@@ -35,7 +35,6 @@ set_config() {
     fi
 
     if [ ! -f $CONFIG_PATH ]; then
-        mkdir -p $DINGO_ROOT/config
         echo "$1" > $CONFIG_PATH
     elif ! grep -q "${cmd[0]}=" "$CONFIG_PATH"; then
         echo "$1" >> $CONFIG_PATH

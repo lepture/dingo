@@ -1,12 +1,37 @@
 #!/usr/bin/env python
 
 import os
+import sys
+import subprocess
 
-DINGO_ROOT = os.environ['DINGO_ROOT']
+APP = os.environ.get('APP')
+APP = sys.argv[1] or APP
+APP_ROOT = os.path.join(os.environ.get('DINGO_ROOT'), APP)
+CONFIG_FILE = os.path.join(APP_ROOT, 'env')
+HOSTNAME_FILE = os.path.join(os.environ.get('DINGO_ROOT'), 'HOSTNAME')
+
+if '.' in APP:
+    HOSTNAME = APP
+else:
+    with open(HOSTNAME_FILE, 'r') as f:
+        default_hostname = f.read()
+    HOSTNAME = '%s.%s' % (APP, default_hostname.strip())
 
 
-def is_ssl(name):
-    path = os.path.join(DINGO_ROOT, 'ssl', name)
+def port():
+    pairs = {}
+    with open(CONFIG_FILE, 'r') as f:
+        for line in f:
+            k, v = line.split('=', 1)
+            pairs[k.strip()] = v.strip()
+
+    if 'PORT' in pairs:
+        return int(pairs['PORT'])
+    return None
+
+
+def is_ssl():
+    path = os.path.join(APP_ROOT, 'ssl')
     if not os.path.isfile(os.path.join(path, 'server.crt')):
         return False
     if not os.path.isfile(os.path.join(path, 'server.key')):
@@ -14,12 +39,14 @@ def is_ssl(name):
     return True
 
 
-def public(name):
-    path = os.path.join(DINGO_ROOT, 'apps', name)
-    if os.path.isdir(os.path.join(path, 'public')):
-        return 'public'
-    if os.path.isdir(os.path.join(path, name, 'public')):
-        return '%s/public' % name
+def public_dir():
+    path = os.path.join(APP_ROOT, 'root')
+    public_dir = os.path.join(path, 'public')
+    if os.path.isdir(public_dir):
+        return public_dir
+    public_dir = os.path.join(path, APP, 'public')
+    if os.path.isdir(public_dir):
+        return public_dir
     return None
 
 
@@ -31,8 +58,8 @@ server {
   listen 80;
   server_name %(hostname)s;
 
-  access_log %(dingo_root)s/logs/%(name)s.access.log;
-  error_log %(dingo_root)s/logs/%(name)s.error.log;
+  access_log %(app_root)s/logs/%(name)s.access.log;
+  error_log %(app_root)s/logs/%(name)s.error.log;
 '''
 
 TEMPLATE_SSL = '''
@@ -40,8 +67,8 @@ TEMPLATE_SSL = '''
   listen 443;
 
   ssl on;
-  ssl_certification %(dingo_root)s/ssl/%(name)s/server.crt;
-  ssl_certification_key %(dingo_root)s/ssl/%(name)s/server.key;
+  ssl_certification %(app_root)s/ssl/server.crt;
+  ssl_certification_key %(app_root)s/ssl/server.key;
   ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-RC4-SHA:ECDHE-RSA-AES128-SHA:AES128-GCM-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH:!CAMELLIA;
   ssl_prefer_server_ciphers on;
   ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
@@ -61,7 +88,7 @@ location ~* ^/[^\/]+\.(css|js)$ {
 
 TEMPLATE_PROXY = '''
   location / {
-    proxy_pass http://%(name)s
+    proxy_pass http://%(name)s;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
@@ -73,45 +100,51 @@ TEMPLATE_PROXY = '''
   }
 '''
 
-
-def dynamic_config(name, port, hostname=None):
-    if not hostname:
-        hostname = '%s.%s' % (name, os.environ['HOSTNAME'])
-
-    template = TEMPLATE_UPSTREAM + TEMPLATE_HEADER
-    if is_ssl(name):
+def dynamic_config(port):
+    template = TEMPLATE_UPSTREAM + TEMPLATE_SERVER
+    if is_ssl():
         template += TEMPLATE_SSL
 
-    public_dir = public(name)
-    if public_dir:
+    pubdir = public_dir()
+    if pubdir:
         template += TEMPLATE_PUBLIC
 
     template += TEMPLATE_PROXY
     template += '}'
     return template % dict(
-        name=name,
-        hostname=hostname,
+        name=APP,
+        hostname=HOSTNAME,
         port=port,
-        dingo_root=DINGO_ROOT,
-        public_dir=public_dir,
+        app_root=APP_ROOT,
+        public_dir=pubdir,
     )
 
 
-def static_config(name, hostname=None):
-    if not hostname:
-        hostname = '%s.%s' % (name, os.environ['HOSTNAME'])
-
-    template = TEMPLATE_HEADER
-    public_dir = os.path.join(DINGO_ROOT, 'apps', name)
-    if is_ssl(name):
+def static_config():
+    template = TEMPLATE_SERVER
+    pubdir = public_dir()
+    if not pubdir:
+        pubdir = os.path.join(APP_ROOT, 'root')
+    if is_ssl():
         template += TEMPLATE_SSL
 
     template += TEMPLATE_PUBLIC
     template += '}'
     return template % dict(
-        name=name,
-        hostname=hostname,
-        port=port,
-        dingo_root=DINGO_ROOT,
-        public_dir=public_dir,
+        name=APP,
+        hostname=HOSTNAME,
+        app_root=APP_ROOT,
+        public_dir=pubdir,
     )
+
+
+PORT = port()
+if PORT:
+    content = dynamic_config(PORT)
+else:
+    content = static_config()
+
+with open(os.path.join(APP_ROOT, 'nginx.conf'), 'w') as f:
+    f.write(content)
+
+subprocess.call(['sudo', '/etc/init.d/nginx', 'reload'])

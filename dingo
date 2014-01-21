@@ -33,6 +33,7 @@ case "$1" in
         export BUILD_ROOT=${DINGO_ROOT}/$APP/build
         rm -fr ${BUILD_ROOT}
         mkdir -p ${BUILD_ROOT}
+        mkdir -p ${DINGO_ROOT}/$APP/logs
         cat | tar -xC ${BUILD_ROOT}
         echo "----> Building:  $APP"
         dingo build $APP
@@ -56,6 +57,9 @@ case "$1" in
 
     deploy)
         pluginhook pre-deploy $2
+        rm -fr ${DINGO_ROOT}/$APP/root
+        mv $BUILD_ROOT ${DINGO_ROOT}/$APP/root
+        supervisorctl update
         pluginhook post-deploy $2
         ;;
 

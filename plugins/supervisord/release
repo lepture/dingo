@@ -39,6 +39,7 @@ TEMPLATE = '''
 environment=%(env)s
 directory=%(app_root)s
 command=%(command)s
+stdout_logfile=%(logfile)s
 redirect_stderr=true
 '''
 
@@ -56,6 +57,7 @@ def create(key, command):
         key=key,
         env=','.join(env),
         app_root=app_root,
+        logfile=os.path.join(APP_ROOT, 'logs', 'supervisord.log'),
         command=command.strip(),
     )
     return ret
@@ -68,6 +70,7 @@ if not pairs:
 if 'web' in pairs:
     # web need a ramdon PORT
     PORT = free_port()
+    print('Web server on port: %s' % PORT)
     subprocess.call(['dingo', 'config:set', APP, 'PORT=%s' % PORT])
 
 supervisor = ''

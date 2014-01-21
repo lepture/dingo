@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import socket
+import subprocess
+
+APP = os.environ.get('APP')
+APP = sys.argv[1] or APP
+APP_ROOT = os.path.join(os.environ.get('DINGO_ROOT'), APP)
+CONFIG_FILE = os.path.join(APP_ROOT, 'env')
+BUILD_ROOT = os.path.join(APP_ROOT, 'build')
+BUILD_ROOT = os.environ.get('BUILD_ROOT', BUILD_ROOT)
+
+
+def free_port():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(('', 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    return port
+
+
+def procfile():
+    filepath = os.path.join(BUILD_ROOT, 'Procfile')
+    if not os.path.isfile(filepath):
+        print('No Procfile')
+        return None
+
+    pairs = {}
+    with open(filepath, 'r') as f:
+        for line in f:
+            key, value = line.split(':', 1)
+            pairs[key] = value.strip()
+    return pairs
+
+TEMPLATE = '''
+[program:%(app)s-%(key)s]
+environment=%(env)s
+directory=%(app_root)s
+command=%(command)s
+redirect_stderr=true
+'''
+
+def create(key, command):
+    app_root = os.path.join(APP_ROOT, 'root')
+    env = []
+
+    with open(CONFIG_FILE, 'r') as f:
+        for line in f:
+            k, v = line.split('=', 1)
+            env.append('%s="%s"' % (k, v.strip()))
+
+    ret = TEMPLATE % dict(
+        app=APP,
+        key=key,
+        env=','.join(env),
+        app_root=app_root,
+        command=command.strip(),
+    )
+    return ret
+
+
+pairs = procfile()
+if not pairs:
+    sys.exit(1)
+
+if 'web' in pairs:
+    # web need a ramdon PORT
+    PORT = free_port()
+    subprocess.call(['dingo', 'config:set', APP, 'PORT=%s' % PORT])
+
+supervisor = ''
+for key in pairs:
+    supervisor += create(key, pairs[key])
+
+with open(os.path.join(APP_ROOT, 'supervisord.conf'), 'w') as f:
+    f.write(supervisor)

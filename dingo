@@ -50,6 +50,7 @@ case "$1" in
 
     release)
         pluginhook pre-release $2
+        pluginhook release $2
         pluginhook post-release $2
         ;;
 

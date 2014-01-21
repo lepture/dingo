@@ -8,7 +8,7 @@ sudo apt-get install -y libncursesw5-dev libssl-dev libgdbm-dev libbz2-dev libbz
 # http://stackoverflow.com/questions/6169522/no-module-named-zlib
 sudo apt-get install -y zlib1g-dev
 
-curl -kL https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py | python
+curl --silent -kL https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py | python
 rm setuptools-*.tar.gz
 easy_install -U pip
 

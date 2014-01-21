@@ -14,7 +14,7 @@ fi
 export PYTHONZ_ROOT=${DINGO_ROOT}/.pythonz
 export PYTHONZ_HOME=${PYTHONZ_ROOT}
 if [[ ! -d ${PYTHONZ_ROOT} ]]; then
-    curl -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash > /dev/null
+    curl --silent -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash > /dev/null
 fi
 
 # find runtime

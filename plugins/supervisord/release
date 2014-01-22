@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import os
+import re
 import sys
+import time
 import socket
 import urllib
 import subprocess
@@ -13,11 +15,17 @@ CONFIG_FILE = os.path.join(APP_ROOT, 'env')
 
 
 def is_serve_up(port):
+    """Detect if the server is up."""
+    # need a little time for supervisor
+    time.sleep(1)
     url = 'http://127.0.0.1:%s' % port
     print('Ping %s' % url)
-    f = urllib.urlopen(url)
-    ret = f.code == 200
-    f.close()
+    try:
+        f = urllib.urlopen(url)
+        ret = f.code == 200
+        f.close()
+    except:
+        return False
     if ret:
         print('%s is up' % url)
     return ret
@@ -59,7 +67,7 @@ TEMPLATE = '''
 [program:%(app)s-%(key)s]
 environment=%(env)s
 directory=%(app_root)s
-command=%(command)s
+command=sh -c "%(command)s"
 stdout_logfile=%(logfile)s
 redirect_stderr=true
 '''
@@ -67,12 +75,19 @@ redirect_stderr=true
 def program_section(key, command):
     """Create a program section."""
     app_root = os.path.join(APP_ROOT, 'root')
-    env = get_config()
-    env = ','.join(['%s="%s"' % (k, v) for k, v in env.items()])
+    config = get_config()
+    env = []
+    for k in config:
+        v = config[k]
+        if re.match(r'^\d+$', v):
+            env.append('%s=%s' % (k, config[k]))
+        else:
+            env.append('%s="%s"' % (k, config[k]))
+
     ret = TEMPLATE % dict(
         app=APP,
         key=key,
-        env=env,
+        env=','.join(env),
         app_root=app_root,
         logfile=os.path.join(APP_ROOT, 'logs', 'supervisord.log'),
         command=command.strip(),

@@ -17,6 +17,7 @@ echo "include $DINGO_ROOT/*/nginx.conf;" > /etc/nginx/conf.d/dingo.conf
 
 sed -i 's/# server_names_hash_bucket_size/server_names_hash_bucket_size/' /etc/nginx/nginx.conf
 
+export DINGO_HOSTNAME=${DINGO_HOSTNAME:="$(hostname)"}
 echo "$DINGO_HOSTNAME" > $DINGO_ROOT/HOSTNAME
 
 /etc/init.d/nginx start

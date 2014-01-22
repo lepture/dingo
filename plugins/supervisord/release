@@ -3,17 +3,28 @@
 import os
 import sys
 import socket
+import urllib
 import subprocess
 
 APP = os.environ.get('APP')
 APP = sys.argv[1] or APP
 APP_ROOT = os.path.join(os.environ.get('DINGO_ROOT'), APP)
 CONFIG_FILE = os.path.join(APP_ROOT, 'env')
-BUILD_ROOT = os.path.join(APP_ROOT, 'build')
-BUILD_ROOT = os.environ.get('BUILD_ROOT', BUILD_ROOT)
+
+
+def is_serve_up(port):
+    url = 'http://127.0.0.1:%s' % port
+    print('Ping %s' % url)
+    f = urllib.urlopen(url)
+    ret = f.code == 200
+    f.close()
+    if ret:
+        print('%s is up' % url)
+    return ret
 
 
 def free_port():
+    """Find a free usable port"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(('', 0))
     port = sock.getsockname()[1]
@@ -21,8 +32,18 @@ def free_port():
     return port
 
 
+def get_config():
+    env = {}
+
+    with open(CONFIG_FILE, 'r') as f:
+        for line in f:
+            k, v = line.split('=', 1)
+            env[k.strip()] = v.strip()
+    return env
+
+
 def procfile():
-    filepath = os.path.join(BUILD_ROOT, 'Procfile')
+    filepath = os.path.join(APP_ROOT, 'root', 'Procfile')
     if not os.path.isfile(filepath):
         print('No Procfile')
         return None
@@ -30,8 +51,8 @@ def procfile():
     pairs = {}
     with open(filepath, 'r') as f:
         for line in f:
-            key, value = line.split(':', 1)
-            pairs[key] = value.strip()
+            k, v = line.split(':', 1)
+            pairs[k.strip()] = v.strip()
     return pairs
 
 TEMPLATE = '''
@@ -43,19 +64,15 @@ stdout_logfile=%(logfile)s
 redirect_stderr=true
 '''
 
-def create(key, command):
+def program_section(key, command):
+    """Create a program section."""
     app_root = os.path.join(APP_ROOT, 'root')
-    env = []
-
-    with open(CONFIG_FILE, 'r') as f:
-        for line in f:
-            k, v = line.split('=', 1)
-            env.append('%s="%s"' % (k, v.strip()))
-
+    env = get_config()
+    env = ','.join(['%s="%s"' % (k, v) for k, v in env.items()])
     ret = TEMPLATE % dict(
         app=APP,
         key=key,
-        env=','.join(env),
+        env=env,
         app_root=app_root,
         logfile=os.path.join(APP_ROOT, 'logs', 'supervisord.log'),
         command=command.strip(),
@@ -63,19 +80,38 @@ def create(key, command):
     return ret
 
 
-pairs = procfile()
-if not pairs:
+def deploy(programs, port=None):
+    if 'web' in programs:
+        if not port:
+            port = free_port()
+        print('Web server on port: %s' % port)
+        subprocess.call(['dingo', 'config:set', APP, 'PORT=%s' % port])
+
+    supervisor = ''
+    for key in programs:
+        supervisor += program_section(key, programs[key])
+
+    with open(os.path.join(APP_ROOT, 'supervisord.conf'), 'w') as f:
+        f.write(supervisor)
+    return port
+
+
+programs = procfile()
+if not programs:
     sys.exit(1)
 
-if 'web' in pairs:
-    # web need a ramdon PORT
-    PORT = free_port()
-    print('Web server on port: %s' % PORT)
-    subprocess.call(['dingo', 'config:set', APP, 'PORT=%s' % PORT])
+config = get_config()
+port = deploy(programs, config.get('PORT'))
+subprocess.call(['supervisorctl', 'update'])
 
-supervisor = ''
-for key in pairs:
-    supervisor += create(key, pairs[key])
+if not port:
+    sys.exit()
 
-with open(os.path.join(APP_ROOT, 'supervisord.conf'), 'w') as f:
-    f.write(supervisor)
+# ping
+if is_serve_up(port):
+    sys.exit()
+else:
+    print('Server is not up yet, retry...')
+    port = deploy(programs, None)
+    subprocess.call(['supervisorctl', 'update'])
+    is_serve_up(port)

@@ -64,9 +64,18 @@ case "$1" in
         ;;
 
     plugins-install)
-        for script in $(ls -d ${DINGO_LIB}/plugins/*/install); do
-            $script
-        done
+        if [ $2 ]; then
+            ${DINGO_LIB}/plugins/$2/install
+        else
+            for script in $(ls -d ${DINGO_LIB}/plugins/*/install); do
+                $script
+            done
+        fi
+        ;;
+
+    destroy)
+        rm -fr ${DINGO_ROOT}/$2
+        rm -fr /home/git/$2.git
         ;;
 
     *:*)

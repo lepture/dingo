@@ -37,6 +37,9 @@ case "$1" in
         cat | tar -xC ${BUILD_ROOT}
         echo "----> Building:  $APP"
         dingo build $APP
+        echo "----> Creating:  $APP"
+        rm -fr ${DINGO_ROOT}/$APP/root
+        mv $BUILD_ROOT ${DINGO_ROOT}/$APP/root
         echo "----> Releasing: $APP"
         dingo release $APP
         echo "----> Deploying: $APP"
@@ -51,8 +54,6 @@ case "$1" in
 
     release)
         pluginhook pre-release $2
-        rm -fr ${DINGO_ROOT}/$APP/root
-        mv $BUILD_ROOT ${DINGO_ROOT}/$APP/root
         pluginhook release $2
         pluginhook post-release $2
         ;;

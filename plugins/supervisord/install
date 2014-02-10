@@ -40,4 +40,8 @@ user = dingo
 [include]
 files = $DINGO_ROOT/*/supervisord.conf
 EOF
-supervisord -c /etc/supervisord.conf
+
+curl --silent "https://gist.github.com/lepture/8910455/raw/supervisord.sh" -o /etc/init.d/supervisord
+chmod +x /etc/init.d/supervisord
+update-rc.d supervisord defaults
+service supervisord start

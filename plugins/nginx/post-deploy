@@ -144,7 +144,14 @@ if PORT:
 else:
     content = static_config()
 
-with open(os.path.join(APP_ROOT, 'nginx.conf'), 'w') as f:
-    f.write(content)
+nginx_conf = os.path.join(APP_ROOT, 'nginx.conf')
+write_conf = True
+if os.path.isfile(nginx_conf):
+    with open(nginx_conf, 'r') as f:
+        if content == f.read():
+            write_conf = False
 
-subprocess.call(['sudo', '/etc/init.d/nginx', 'reload'])
+if write_conf:
+    with open(nginx_conf, 'w') as f:
+        f.write(content)
+    subprocess.call(['sudo', '/etc/init.d/nginx', 'reload'])

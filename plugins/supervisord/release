@@ -119,7 +119,7 @@ config = get_config()
 port = deploy(programs, config.get('PORT'))
 subprocess.call(['supervisorctl', 'update'])
 
-if not port:
+if 'web' not in programs:
     sys.exit()
 
 # ping

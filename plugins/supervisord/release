@@ -22,7 +22,7 @@ def is_serve_up(port):
     print('Ping %s' % url)
     try:
         f = urllib.urlopen(url)
-        ret = f.code == 200
+        ret = f.code < 500
         f.close()
     except:
         return False

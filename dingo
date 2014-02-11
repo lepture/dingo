@@ -6,15 +6,21 @@ export DINGO_LIB=${DINGO_LIB:="/var/lib/dingo"}
 
 pluginhook() {
     APP=$2
+    BUILD_ROOT=${DINGO_ROOT}/$APP/build
+    RELEASE_ROOT=${DINGO_ROOT}/$APP/root
     if [[ ! $APP ]]; then
         exit 1
     fi
     for script in $(ls -d ${DINGO_LIB}/plugins/*/$1 2>/dev/null); do
         $script $APP &
     done
+    if [ -f ${BUILD_ROOT}/hooks/$1 ]; then
+        ${BUILD_ROOT}/hooks/$1 &
+    elif [ -f ${RELEASE_ROOT}/hooks/$1 ]; then
+        ${RELEASE_ROOT}/hooks/$1 &
+    fi
     wait
 }
-
 
 plugincommand() {
     # plugin command like `foo:bar`
@@ -29,19 +35,25 @@ plugincommand() {
 case "$1" in
     receive)
         export APP=$2
-        echo "----> Receive:   $APP"
         export BUILD_ROOT=${DINGO_ROOT}/$APP/build
+        export RELEASE_ROOT=${DINGO_ROOT}/$APP/root
+
+        echo "----> Receive:   $APP"
         rm -fr ${BUILD_ROOT}
         mkdir -p ${BUILD_ROOT}
         mkdir -p ${DINGO_ROOT}/$APP/logs
         cat | tar -xC ${BUILD_ROOT}
+
         echo "----> Building:  $APP"
         dingo build $APP
+
         echo "----> Creating:  $APP"
-        rm -fr ${DINGO_ROOT}/$APP/root
-        mv $BUILD_ROOT ${DINGO_ROOT}/$APP/root
+        rm -fr ${RELEASE_ROOT}
+        mv $BUILD_ROOT ${RELEASE_ROOT}
+
         echo "----> Releasing: $APP"
         dingo release $APP
+
         echo "----> Deploying: $APP"
         dingo deploy $APP
         ;;

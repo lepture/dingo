@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
+
+CMD=$1
+
+
+case "$CMD" in
+    create)
+        ;;
+    destroy)
+        ;;
+esac

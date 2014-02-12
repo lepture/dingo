@@ -103,6 +103,8 @@ def deploy(programs, port=None):
         subprocess.call(['dingo', 'config:set', APP, 'PORT=%s' % port])
 
     supervisor = ''
+    for key in programs:
+        supervisor += program_section(key, programs[key])
     with open(os.path.join(APP_ROOT, 'supervisord.conf'), 'w') as f:
         f.write(supervisor)
 

@@ -14,10 +14,10 @@ APP_ROOT = os.path.join(os.environ.get('DINGO_ROOT'), APP)
 CONFIG_FILE = os.path.join(APP_ROOT, 'env')
 
 
-def is_serve_up(port):
+def is_serve_up(port, count=1):
     """Detect if the server is up."""
     # need a little time for supervisor
-    time.sleep(1)
+    time.sleep(count**2)
     url = 'http://127.0.0.1:%s' % port
     print('Ping %s' % url)
     try:
@@ -103,11 +103,10 @@ def deploy(programs, port=None):
         subprocess.call(['dingo', 'config:set', APP, 'PORT=%s' % port])
 
     supervisor = ''
-    for key in programs:
-        supervisor += program_section(key, programs[key])
-
     with open(os.path.join(APP_ROOT, 'supervisord.conf'), 'w') as f:
         f.write(supervisor)
+
+    subprocess.call(['supervisorctl', 'update'])
     return port
 
 
@@ -117,16 +116,12 @@ if not programs:
 
 config = get_config()
 port = deploy(programs, config.get('PORT'))
-subprocess.call(['supervisorctl', 'update'])
 
 if 'web' not in programs:
     sys.exit()
 
-# ping
-if is_serve_up(port):
-    sys.exit()
-else:
+try_count = 1
+while not is_serve_up(port, try_count) and try_count < 4:
     print('Server is not up yet, retry...')
     port = deploy(programs, None)
-    subprocess.call(['supervisorctl', 'update'])
-    is_serve_up(port)
+    try_count += 1

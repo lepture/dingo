@@ -155,3 +155,8 @@ if write_conf:
     with open(nginx_conf, 'w') as f:
         f.write(content)
     subprocess.call(['sudo', '/etc/init.d/nginx', 'reload'])
+
+if is_ssl():
+    print('----> https://%s' % HOSTNAME)
+else:
+    print('----> http://%s' % HOSTNAME)

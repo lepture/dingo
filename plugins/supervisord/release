@@ -99,7 +99,6 @@ def deploy(programs, port=None):
     if 'web' in programs:
         if not port:
             port = free_port()
-        print('Web server on port: %s' % port)
         subprocess.call(['dingo', 'config:set', APP, 'PORT=%s' % port])
 
     supervisor = ''

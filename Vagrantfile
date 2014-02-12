@@ -3,7 +3,7 @@
 
 BOX_NAME = ENV["BOX_NAME"] || "ubuntu"
 BOX_URI = ENV["BOX_URI"] || "https://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
-DINGO_DOMAIN = ENV["DINGO_DOMAIN"] || "dingo"
+DINGO_DOMAIN = ENV["DINGO_DOMAIN"] || "dingoapp.me"
 DINGO_IP = ENV["DINGO_IP"] || "10.0.0.2"
 
 Vagrant.configure("2") do |config|

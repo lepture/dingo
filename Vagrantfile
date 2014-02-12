@@ -14,8 +14,6 @@ Vagrant.configure("2") do |config|
   config.vm.network :forwarded_port, guest: 80, host: 8090
   config.vm.network :private_network, ip: DINGO_IP
 
-  config.vm.synced_folder ".", "/root/dingo"
-
   config.vm.provider :virtualbox do |vb, override|
     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   end

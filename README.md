@@ -18,7 +18,6 @@ to waste resource for docker.
         ssl/
             server.crt
             server.key
-        hooks/
         build/
         root/
 ```
@@ -43,7 +42,7 @@ directory.
 Hook anything you want for your app:
 
 ```
-hooks/
+_hooks/
     pre-deploy
 ```
 

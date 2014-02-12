@@ -12,7 +12,10 @@ apt-get install -y git make curl software-properties-common
 # NEED?
 apt-get install -y python-software-properties
 
-#TODO clone repo
+if [ ! -f dingo ]; then
+    git clone $DINGO_REPO
+    cd dingo
+fi
 
 make install
 

@@ -6,18 +6,14 @@ export DINGO_LIB=${DINGO_LIB:="/var/lib/dingo"}
 
 pluginhook() {
     APP=$2
-    BUILD_ROOT=${DINGO_ROOT}/$APP/build
-    RELEASE_ROOT=${DINGO_ROOT}/$APP/root
     if [[ ! $APP ]]; then
         exit 1
     fi
     for script in $(ls -d ${DINGO_LIB}/plugins/*/$1 2>/dev/null); do
         $script $APP &
     done
-    if [ -f ${BUILD_ROOT}/hooks/$1 ]; then
-        ${BUILD_ROOT}/hooks/$1 &
-    elif [ -f ${RELEASE_ROOT}/hooks/$1 ]; then
-        ${RELEASE_ROOT}/hooks/$1 &
+    if [ -f _hooks/$1 ]; then
+        _hooks/$1 &
     fi
     wait
 }
@@ -59,12 +55,14 @@ case "$1" in
         ;;
 
     build)
+        cd ${DINGO_ROOT}/$APP/build
         pluginhook pre-build $2
         pluginhook build $2
         pluginhook post-build $2
         ;;
 
     release)
+        cd ${DINGO_ROOT}/$APP/root
         pluginhook pre-release $2
         pluginhook release $2
         pluginhook post-release $2
@@ -72,6 +70,7 @@ case "$1" in
 
     deploy)
         pluginhook pre-deploy $2
+        pluginhook deploy $2
         pluginhook post-deploy $2
         ;;
 

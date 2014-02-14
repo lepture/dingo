@@ -67,7 +67,7 @@ TEMPLATE = '''
 [program:%(app)s-%(key)s]
 environment=%(env)s
 directory=%(app_root)s
-command=sh -c "%(command)s"
+command=bash -c "%(command)s"
 stdout_logfile=%(logfile)s
 redirect_stderr=true
 '''
@@ -80,9 +80,9 @@ def program_section(key, command):
     for k in config:
         v = config[k]
         if re.match(r'^\d+$', v):
-            env.append('%s=%s' % (k, config[k]))
+            env.append('%s=%s' % (k, v))
         else:
-            env.append('%s="%s"' % (k, config[k]))
+            env.append('%s="%s"' % (k, v))
 
     ret = TEMPLATE % dict(
         app=APP,
@@ -104,10 +104,14 @@ def deploy(programs, port=None):
     supervisor = ''
     for key in programs:
         supervisor += program_section(key, programs[key])
+
     with open(os.path.join(APP_ROOT, 'supervisord.conf'), 'w') as f:
         f.write(supervisor)
 
     subprocess.call(['supervisorctl', 'update'])
+    for key in programs:
+        # force restart
+        subprocess.call(['supervisorctl', 'restart', '%s-%s' % (APP, key)])
     return port
 
 

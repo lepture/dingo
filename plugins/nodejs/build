@@ -17,7 +17,7 @@ if [ -d $RUNTIME_ROOT ]; then
     export PATH=$RUNTIME_ROOT/bin:$PATH
     cd $BUILD_ROOT
     echo "Install dependencies"
-    npm install -q
+    npm install -q --production
 fi
 
 # record PATH

@@ -10,7 +10,7 @@ install: sshcommand copyfiles
 copyfiles:
 	cp ${CWD}/dingo /usr/local/bin/dingo
 	mkdir -p ${DINGO_LIB}
-	cp -r ${CWD}/plugins/* ${DINGO_LIB}/plugins/
+	cp -r ${CWD}/plugins ${DINGO_LIB}/plugins
 
 sshcommand:
 	wget -qO /usr/local/bin/sshcommand ${SSHCOMMAND_URL}

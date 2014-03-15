@@ -58,8 +58,8 @@ server {
   listen 80;
   server_name %(hostname)s;
 
-  access_log %(app_root)s/logs/%(name)s.access.log;
-  error_log %(app_root)s/logs/%(name)s.error.log;
+  access_log %(app_root)s/logs/nginx.access.log;
+  error_log %(app_root)s/logs/nginx.error.log;
 '''
 
 TEMPLATE_SSL = '''
@@ -67,8 +67,8 @@ TEMPLATE_SSL = '''
   listen 443;
 
   ssl on;
-  ssl_certification %(app_root)s/ssl/server.crt;
-  ssl_certification_key %(app_root)s/ssl/server.key;
+  ssl_certificate %(app_root)s/ssl/server.crt;
+  ssl_certificate_key %(app_root)s/ssl/server.key;
   ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-RC4-SHA:ECDHE-RSA-AES128-SHA:AES128-GCM-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH:!CAMELLIA;
   ssl_prefer_server_ciphers on;
   ssl_protocols TLSv1.2 TLSv1.1 TLSv1;

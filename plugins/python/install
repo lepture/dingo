@@ -12,7 +12,7 @@ sudo apt-get install -y zlib1g-dev
 sudo apt-get install -y libxml2-dev libxslt-dev
 
 curl --silent -kL https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py | python
-rm setuptools-*.tar.gz
+rm -f setuptools-*
 easy_install -U pip
 
 # virtualenv

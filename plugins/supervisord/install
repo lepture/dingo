@@ -4,7 +4,7 @@ set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 # supervisor
 pip install -U supervisor
 
-if [ -f "/etc/supervisord.conf" ]; then
+if [ -f "/etc/init.d/supervisord" ]; then
     exit
 fi
 
@@ -41,7 +41,7 @@ user = dingo
 files = $DINGO_ROOT/*/supervisord.conf
 EOF
 
-curl --silent "https://gist.github.com/lepture/8910455/raw/supervisord.sh" -o /etc/init.d/supervisord
+curl --silent "https://gist.githubusercontent.com/lepture/8910455/raw/supervisord.sh" -o /etc/init.d/supervisord
 chmod +x /etc/init.d/supervisord
 # patch supervisord
 sed -i 's#PIDFILE=/var/run/$NAME.pid#PIDFILE='"$SUPERVISORD_ROOT"'/supervisord.pid#' /etc/init.d/supervisord

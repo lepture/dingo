@@ -9,6 +9,7 @@ install: sshcommand copyfiles
 
 copyfiles:
 	cp ${CWD}/dingo /usr/local/bin/dingo
+	rm -fr ${DINGO_LIB}
 	mkdir -p ${DINGO_LIB}
 	cp -r ${CWD}/plugins ${DINGO_LIB}/plugins
 

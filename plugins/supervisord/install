@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
-# supervisor
-pip install -U supervisor
-
-if [ -f "/etc/init.d/supervisord" ]; then
+if [ -f "/etc/supervisor/conf.d/dingo.conf" ]; then
     exit
 fi
+
+# supervisor
+apt-get install -y supervisor
 
 PASSWORD=$(date | md5sum)
 PASSWORD=${PASSWORD// /}
@@ -14,36 +14,7 @@ SUPERVISORD_ROOT=$DINGO_ROOT/.supervisord
 mkdir -p $SUPERVISORD_ROOT
 chown -R dingo $SUPERVISORD_ROOT
 
-cat > /etc/supervisord.conf <<EOF
-[unix_http_server]
-file = $SUPERVISORD_ROOT/supervisorctl.sock
-
-[rpcinterface:supervisor]
-supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
-
-[supervisorctl]
-serverurl = unix://$SUPERVISORD_ROOT/supervisorctl.sock
-username = dingo
-password = $PASSWORD
-
-[supervisord]
-logfile = $SUPERVISORD_ROOT/supervisord.log
-logfile_maxbytes = 50MB
-logfile_backups = 10
-loglevel = warn
-pidfile = $SUPERVISORD_ROOT/supervisord.pid
-nodaemon = false
-minfds = 1024
-minprocs = 200
-user = dingo
-
+cat > /etc/supervisor/conf.d/dingo.conf <<EOF
 [include]
 files = $DINGO_ROOT/*/supervisord.conf
 EOF
-
-curl --silent "https://gist.githubusercontent.com/lepture/8910455/raw/supervisord.sh" -o /etc/init.d/supervisord
-chmod +x /etc/init.d/supervisord
-# patch supervisord
-sed -i 's#PIDFILE=/var/run/$NAME.pid#PIDFILE='"$SUPERVISORD_ROOT"'/supervisord.pid#' /etc/init.d/supervisord
-update-rc.d supervisord defaults
-service supervisord start

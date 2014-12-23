@@ -5,7 +5,7 @@ set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 APP=$1
 BUILD_ROOT=${BUILD_ROOT:="$DINGO_ROOT/$APP/build"}
 
-# detect if this is Python project
+# detect if this is NodeJS project
 if [[ ! -f $BUILD_ROOT/package.json ]]; then
     exit 1
 fi

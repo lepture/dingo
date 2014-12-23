@@ -72,6 +72,7 @@ stdout_logfile=%(logfile)s
 redirect_stderr=true
 '''
 
+
 def program_section(key, command):
     """Create a program section."""
     app_root = os.path.join(APP_ROOT, 'root')

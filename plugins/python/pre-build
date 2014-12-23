@@ -18,7 +18,7 @@ if [[ ! -d ${PYTHONZ_ROOT} ]]; then
 fi
 
 # find runtime
-PYTHON_RUNTIME='Python 2.7.6'
+PYTHON_RUNTIME='Python 2.7.8'
 if [[ -f $BUILD_ROOT/runtime.txt ]]; then
     PYTHON_RUNTIME=$(cat $BUILD_ROOT/runtime.txt)
 else

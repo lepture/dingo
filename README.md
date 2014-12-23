@@ -14,7 +14,7 @@ Currently supports building apps of:
 
 ## Installation
 
-**ONLY TESTED ON UBUNTU raring**
+**ONLY TESTED ON UBUNTU**
 
 It is better to install on a clean machine:
 
@@ -54,16 +54,6 @@ Let's deploy the [node-js-sample](https://github.com/heroku/node-js-sample):
     $ curl http://node-js.dingoapp.me/
 
 It just works. You should replace the hostname yourself.
-
-## Concept
-
-## Todo
-
-Database commands implementation:
-
-1. mysql
-2. mongodb
-3. redis
 
 ## License
 

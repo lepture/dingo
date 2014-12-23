@@ -10,46 +10,7 @@ if [[ ! -f $BUILD_ROOT/requirements.txt && ! -f $BUILD_ROOT/setup.py ]]; then
     exit 1
 fi
 
-# install pythonz
-export PYTHONZ_ROOT=${DINGO_ROOT}/.pythonz
-export PYTHONZ_HOME=${PYTHONZ_ROOT}
-if [[ ! -d ${PYTHONZ_ROOT} ]]; then
-    curl --silent -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash > /dev/null
-fi
+#: TODO use pyenv
 
-# find runtime
-PYTHON_RUNTIME='Python 2.7.6'
-if [[ -f $BUILD_ROOT/runtime.txt ]]; then
-    PYTHON_RUNTIME=$(cat $BUILD_ROOT/runtime.txt)
-else
-    echo "runtime.txt is not provided."
-fi
-
-PYTHON_RUNTIME=$(echo "$PYTHON_RUNTIME" | sed -r s/\\s+/-/)
-PYTHON_RUNTIME=$(echo $PYTHON_RUNTIME | perl -e 'print lc <>;')
-
-echo "Setting up $PYTHON_RUNTIME"
-echo $PYTHON_RUNTIME > ${BUILD_ROOT}/runtime.txt
-
-# transform PYTHON_RUNTIME to pythonz format
-pythons=(${PYTHON_RUNTIME//-/ })
-if [[ ${pythons[0]} = "python" || ${pythons[0]} = "cpython" ]]; then
-    python_type="CPython"
-elif [[ ${pythons[0]} = "pypy" ]]; then
-    python_type="PyPy"
-fi
-python_version=${pythons[1]}
-
-# install python
-PYTHON_BIN=$PYTHONZ_ROOT/pythons/${python_type}-${python_version}/bin/python
-if [ ! -f $PYTHON_BIN ]; then
-    echo "Compiling $PYTHON_RUNTIME"
-    echo "This may take a long time for the first time."
-    $PYTHONZ_ROOT/bin/pythonz install -t ${python_type} ${python_version} > /dev/null
-fi
-
-# create virtualenv
-RUNTIME_ROOT=${DINGO_ROOT}/$APP/runtime/$PYTHON_RUNTIME
-if [ ! -d $RUNTIME_ROOT ]; then
-    virtualenv -p ${PYTHON_BIN} ${RUNTIME_ROOT}
-fi
+# PYTHON_RUNTIME='default'
+virtualenv ${DINGO_ROOT}/$APP/runtime

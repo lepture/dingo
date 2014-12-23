@@ -10,8 +10,7 @@ if [[ ! -f $BUILD_ROOT/requirements.txt && ! -f $BUILD_ROOT/setup.py ]]; then
     exit 1
 fi
 
-PYTHON_RUNTIME=$(cat $BUILD_ROOT/runtime.txt)
-RUNTIME_ROOT=${DINGO_ROOT}/$APP/runtime/$PYTHON_RUNTIME
+RUNTIME_ROOT=${DINGO_ROOT}/$APP/runtime
 
 if [ -d $RUNTIME_ROOT ]; then
     source $RUNTIME_ROOT/bin/activate

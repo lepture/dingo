@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
-if grep -q dingo "/etc/sudoers"; then
+if grep -q dingo-config-files "/etc/sudoers"; then
     exit
 fi
 
@@ -24,7 +24,7 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 [supervisorctl]
 serverurl=unix:///var/run/supervisor.sock
 
-; include dingo config files
+; include dingo-config-files
 [include]
 files = /etc/supervisor/conf.d/*.conf $DINGO_ROOT/*/supervisord.conf
 EOF

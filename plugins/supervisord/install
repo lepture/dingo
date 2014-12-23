@@ -2,6 +2,7 @@
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
 if grep -q dingo-config-files "/etc/sudoers"; then
+    echo "Supervisord plugin installed."
     exit
 fi
 

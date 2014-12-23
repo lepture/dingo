@@ -13,10 +13,9 @@ fi
 RUNTIME_ROOT=${DINGO_ROOT}/$APP/runtime
 
 if [ -d $RUNTIME_ROOT ]; then
-    source $RUNTIME_ROOT/bin/activate
     if [ -f $BUILD_ROOT/requirements.txt ]; then
         echo "Install requirements"
-        pip install -q -r "$BUILD_ROOT/requirements.txt"
+        $RUNTIME_ROOT/bin/pip install -q -r "$BUILD_ROOT/requirements.txt"
     fi
 fi
 

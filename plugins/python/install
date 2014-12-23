@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
+if test -f /usr/bin/easy_install; then
+    echo "Python plugin installed."
+    exit
+fi
+
 # http://askubuntu.com/questions/21547/what-are-the-packages-libraries-i-should-install-before-compiling-python-from-so
 sudo apt-get install -y build-essential libz-dev libreadline-dev
 sudo apt-get install -y libncursesw5-dev libssl-dev libgdbm-dev libbz2-dev libbz2-dev libc6-dev libsqlite3-dev liblzma-dev

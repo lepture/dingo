@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
+if grep -q nginx-without-password "/etc/sudoers"; then
+    echo "Nginx plugin installed."
+    exit
+fi
+
 add-apt-repository -y ppa:nginx/stable
 apt-get update
 apt-get install -y nginx

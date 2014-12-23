@@ -13,6 +13,7 @@ fi
 RUNTIME_ROOT=${DINGO_ROOT}/$APP/runtime
 
 if [ -d $RUNTIME_ROOT ]; then
+    export PATH=$RUNTIME_ROOT/bin:$PATH
     if [ -f $BUILD_ROOT/requirements.txt ]; then
         echo "Install requirements"
         $RUNTIME_ROOT/bin/pip install -q -r "$BUILD_ROOT/requirements.txt"

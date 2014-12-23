@@ -1,20 +1,38 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DINGO_TRACE ]] && set -x
 
-if [ -f "/etc/supervisor/conf.d/dingo.conf" ]; then
+if grep -q dingo "/etc/sudoers"; then
     exit
 fi
 
 # supervisor
 apt-get install -y supervisor
 
-PASSWORD=$(date | md5sum)
-PASSWORD=${PASSWORD// /}
-SUPERVISORD_ROOT=$DINGO_ROOT/.supervisord
-mkdir -p $SUPERVISORD_ROOT
-chown -R dingo $SUPERVISORD_ROOT
+cat > /etc/supervisor/supervisord.conf <<EOF
+[unix_http_server]
+file=/var/run/supervisor.sock
+chmod=0700
 
-cat > /etc/supervisor/conf.d/dingo.conf <<EOF
+[supervisord]
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+childlogdir=/var/log/supervisor
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl=unix:///var/run/supervisor.sock
+
+; include dingo config files
 [include]
-files = $DINGO_ROOT/*/supervisord.conf
+files = /etc/supervisor/conf.d/*.conf $DINGO_ROOT/*/supervisord.conf
 EOF
+
+if ! grep -q supervisor-without-password "/etc/sudoers"; then
+    touch /etc/sudoers.tmp
+    cp /etc/sudoers /tmp/sudoers.new
+    echo "%dingo ALL=(ALL) NOPASSWD: /usr/bin/supervisorctl # supervisor-without-password" >> /tmp/sudoers.new
+    EDITOR="cp /tmp/sudoers.new" visudo
+    rm /tmp/sudoers.new
+fi

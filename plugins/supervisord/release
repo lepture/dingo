@@ -109,10 +109,11 @@ def deploy(programs, port=None):
     with open(os.path.join(APP_ROOT, 'supervisord.conf'), 'w') as f:
         f.write(supervisor)
 
-    subprocess.call(['supervisorctl', 'update'])
+    BIN = '/usr/bin/supervisorctl'
+    subprocess.call([BIN, 'update'])
     for key in programs:
         # force restart
-        subprocess.call(['supervisorctl', 'restart', '%s-%s' % (APP, key)])
+        subprocess.call([BIN, 'restart', '%s-%s' % (APP, key)])
     return port
 
 
